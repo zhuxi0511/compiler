@@ -13,9 +13,27 @@ def lexical_analysis(input_file):
 
     for line in input_file:
         while len(line) > 0:
-            line, sign, value = read_word(line)
-            if value:
-                analysis_result.append((sign, value))
+            if status == NEW:
+                if line[0] in BLANK:
+                    line = line[1:]
+                line, sign, value = read_word(line)
+                if value:
+                    if sign == 'TYPE':
+                        status = AFTER_TYPE
+                    analysis_result.append((sign, value))
+                    continue
+                line, sign, value = read_number(line)
+                if value:
+                    analysis_result.append((sign, value))
+                    continue
+                line, sign, value = read_operator((sign, value))
+                if value:
+                    analysis_result.append((sign, value))
+                    continue
+                line, sign, value = read_punctuator((sign, value))
+                if value:
+                    analysis_result.append((sign, value))
+                    continue
 
 
 
