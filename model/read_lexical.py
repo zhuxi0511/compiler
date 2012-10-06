@@ -1,15 +1,15 @@
 from consts import *
 
 def read_number(string):
-    status = NEW
+    status = STATUS_NEW
     ret = 0
     for c in string:
         if c not in NUMBER:
             break
-        if status == NEW:
+        if status == STATUS_NEW:
             if c == '.':
-                status = POINT
-        elif status == POINT:
+                status = STATUS_POINT
+        elif status == STATUS_POINT:
             if c == '.':
                 break
         ret += 1
@@ -17,22 +17,22 @@ def read_number(string):
     return string[ret:], 'NUMBER', string[:ret]
 
 def read_word(string):
-    status = NEW
+    status = STATUS_NEW
     ret = 0
     for c in string:
         if c not in WORD:
             break
-        if status == NEW:
+        if status == STATUS_NEW:
             if c in NUMBER:
                 break
             else:
-                status = POINT
+                status = STATUS_POINT
         ret += 1
 
     word = string[:ret]
     ret_type = 'WORD'
-    ret_type = 'KEYWORD' if word in KEYWORD else 'WORD'
-    ret_type = 'TYPE' if word in TYPE else 'WORD'
+    ret_type = 'KEYWORD' if word in KEYWORD else ret_type
+    ret_type = 'TYPE' if word in TYPE else ret_type
 
     return string[ret:], ret_type, string[:ret]
 
@@ -46,7 +46,7 @@ def read_operator(string):
     return string[ret:], 'OPERATOR', string[:ret]
 
 def read_punctuator(string):
-    status = NEW
+    status = STATUS_NEW
     punctuator = str()
     ret = 0
     if len(string) > 0:
@@ -57,11 +57,11 @@ def read_punctuator(string):
     return string[ret:], 'PUNCTUATOR', punctuator
 
 def read_const(string):
-    status = NEW
+    status = STATUS_NEW
     str_const = str()
     ret = 0
     for c in string:
-        if status == NEW:
+        if status == STATUS_NEW:
             if c == '"':
                 status = ONE_QUOTATION
             else:

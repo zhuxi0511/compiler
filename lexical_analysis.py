@@ -7,7 +7,7 @@ from model.read_lexical import *
 
 def lexical_analysis(input_file):
 
-    status = NEW
+    status = STATUS_NEW
     analysis_result = list()
     symbol_table = dict()
 
@@ -15,7 +15,7 @@ def lexical_analysis(input_file):
 
     for line in input_file:
         while len(line) > 0:
-            if status == NEW:
+            if status == STATUS_NEW:
                 if line[0] in BLANK:
                     line = line[1:]
                     continue
@@ -50,7 +50,7 @@ def lexical_analysis(input_file):
                     continue
             elif status == AFTER_TYPE:
                 if line[0] in BLANK:
-                    status = NEW
+                    status = STATUS_NEW
                     line = line[1:]
                     continue
 
@@ -59,7 +59,8 @@ def lexical_analysis(input_file):
 
 
     print 'success'
-    return analysis_result, symbol_table
+    analysis_result.append(('END', '#'))
+    return tuple(analysis_result), symbol_table
     
 
 if __name__ == "__main__":
