@@ -1,4 +1,8 @@
 
-*.swp
 *.pyc
+consts.pyc
+*.swp
+
+.consts.py.swp
+
 consts.pyc

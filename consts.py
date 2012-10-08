@@ -21,3 +21,21 @@ TYPE = [
 
 OPERATOR = "+-*/><=&"
 PUNCTUATOR = "[](){},:;"
+
+COMPARE_SIGN = [
+    ('OPERATOR', '>'),
+    ('OPERATOR', '>='),
+    ('OPERATOR', '<'),
+    ('OPERATOR', '>='),
+]
+
+PLUS_SING = [
+    ('OPERATOR', '+'),
+    ('OPERATOR', '-'),
+]
+
+MULTIPLY_SIGE = [
+    ('OPERATOR', '*'),
+    ('OPERATOR', '/'),
+]
+

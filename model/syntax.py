@@ -1,4 +1,5 @@
 from consts import *
+from model.calculation_expression import *
 
 def function_definition(lex_list):
     if not len(lex_list) > 1:
@@ -34,6 +35,10 @@ def direct_declarator(lex_list):
         deal_list = post_declarator(lex_list)
         if deal_list:
             return deal_list
+        deal_list = suffix_declarator(lex_list)
+        if deal_list:
+            return deal_list
+
         return lex_list
 
     print ERROR + 'direct_declarator'
@@ -49,13 +54,24 @@ def identifier(lex_list):
 
     print ERROR + 'identifier'
     return None
+
+def suffix_declarator(lex_list):
+    if not len(lex_list) > 1:
+        print ERROR + 'suffix_declarator' + '1'
+        return None
+
+    if lex_list[0] == ('OPERATOR', '++'):
+        print 'suffix_declarator -> ' + lex_list[0]
+        return lex_list[1:]
+
+    return None
     
 def post_declarator(lex_list):
     if not len(lex_list) > 1:
         print ERROR + 'post_declarator'
         return None
     if lex_list[0] == ('PUNCTUATOR', '['):
-        if len(lex_list) > 3 and lex_list[1][0] == 'NUMBER' and \
+        if len(lex_list) > 3 and (lex_list[1][0] == 'NUMBER' or lex_list[1][0] == 'WORD') and \
                 lex_list[2] == ('PUNCTUATOR', ']'):
             print 'post_declarator -> ' + str(lex_list[:3])
             return lex_list[3:]
@@ -151,34 +167,6 @@ def expression(lex_list):
         return deal_list
     
     print ERROR + 'expression' + '1'
-    return None
-
-def calculation_expression(lex_list):
-    if not len(lex_list) > 1:
-        print ERROR + 'calculation_expression' + '1'
-        return None
-
-    c = 0
-    state = STATUS_NEW
-    deal_list = lex_list
-    while c < len(lex_list):
-        if state == STATUS_NEW:
-            if deal_list[c][0] == 'WORD' or deal_list[c][0] == 'NUMBER':
-                state = STATUS_POINT
-            else: 
-                break
-        elif state == STATUS_POINT:
-            if deal_list[c][0] == 'OPERATOR':
-                state = STATUS_NEW
-            else:
-                break
-        c += 1
-
-    if state == STATUS_POINT and c > 0:
-        print 'calculation_expression -> ' + str(lex_list[:c])
-        return lex_list[c:]
-
-    print ERROR + 'calculation_expression' + '2'
     return None
 
 def const_expression(lex_list):
