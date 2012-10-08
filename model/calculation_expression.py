@@ -44,7 +44,7 @@ def E(lex_list):
     return None
 
 def EE(lex_list):
-    if not lex_list(lex_list) > 1:
+    if not len(lex_list) > 1:
         print ERROR + 'EE'
         return None
 
@@ -62,29 +62,42 @@ def T(lex_list):
         print ERROR + 'T'
         return None
 
-    temp_list = T(lex_list)
-    if temp_list:
-        if len(lex_list) > 1 and temp_list[0] in MULTIPLY_SIGE:
-            deal_list = F(temp_list[1:])
-            if deal_list:
-                print 'T -> ' + str(temp_list[0])
-                return deal_list
-    
-    temp_list = F(lex_list)
-    if temp_list:
-        return temp_list
+    lex_list = F(lex_list)
+    if lex_list:
+        lex_list = TT(lex_list)
+        if lex_list:
+            return lex_list
 
     print ERROR + 'T' + '2'
     return None
+
+def TT(lex_list):
+    if not len(lex_list) > 1:
+        print ERROR + 'TT'
+        return None
+
+    if lex_list[0] in MULTIPLY_SIGE:
+        lex_list = F(lex_list[1:])
+        if lex_list:
+            lex_list = TT(lex_list)
+            if lex_list:
+                return lex_list
+    else:
+        return lex_list
 
 def F(lex_list):
     if not len(lex_list) > 1:
         print ERROR + 'F'
 
-    from model.symbol_table import direct_declarator
-    lex_list = direct_declarator(lex_list)
-    if lex_list:
-        return lex_list
+    from model.syntax import direct_declarator
+    deal_list = direct_declarator(lex_list)
+    if deal_list:
+        return deal_list
+
+    from model.syntax import get_number
+    deal_list = get_number(lex_list)
+    if deal_list:
+        return deal_list
 
     print ERROR + 'F' + '2'
     return None

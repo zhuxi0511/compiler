@@ -26,6 +26,17 @@ def get_type(lex_list):
     print ERROR + 'get_type'
     return None
 
+def get_number(lex_list):
+    if not len(lex_list) > 1:
+        print ERROR + 'get_number'
+        return None
+    if lex_list[0][0] == 'NUMBER':
+        print 'NUMBER -> ' + str(lex_list[:1])
+        return lex_list[1:]
+
+    print ERROR + 'get_number'
+    return None
+
 def direct_declarator(lex_list):
     if not len(lex_list) > 1:
         print ERROR + 'direct_declarator'
@@ -61,7 +72,7 @@ def suffix_declarator(lex_list):
         return None
 
     if lex_list[0] == ('OPERATOR', '++'):
-        print 'suffix_declarator -> ' + lex_list[0]
+        print 'suffix_declarator -> ' + str(lex_list[0])
         return lex_list[1:]
 
     return None
@@ -204,12 +215,12 @@ def selection_statement(lex_list):
         return None
 
     if lex_list[0] == ('KEYWORD', 'if') and lex_list[1] == ('PUNCTUATOR', '('):
-        lex_list = calculation_expression(lex_list[2:])
+        lex_list = comparison_expression(lex_list[2:])
         if len(lex_list) > 1 and lex_list[0] == ('PUNCTUATOR', ')'):
-            lex_list = statement(lex_list[1:])
+            lex_list = compound_statment(lex_list[1:])
             if lex_list:
                 if len(lex_list) > 1 and lex_list[0] == ('KEYWORD', 'else'):
-                    deal_list = statement(lex_list[1:])
+                    deal_list = compound_statment(lex_list[1:])
                     if deal_list:
                         return deal_list
                 return lex_list
@@ -235,13 +246,13 @@ def for_statement(lex_list):
         return None
 
     if lex_list[0] == ('KEYWORD', 'for') and lex_list[1] == ('PUNCTUATOR', '('):
-        lex_list = expression(lex_list)
+        lex_list = expression(lex_list[2:])
         if lex_list and len(lex_list) > 1 and lex_list[0] == ('PUNCTUATOR', ';'):
-            lex_list = calculation_expression(lex_list[1:])
+            lex_list = comparison_expression(lex_list[1:])
             if lex_list and len(lex_list) > 1 and lex_list[0] == ('PUNCTUATOR', ';'):
-                lex_list = calculation_expression(lex_list[1:])
-                if lex_list and len(lex_list) > 1 and lex_list[0] == ('PUNCTUATOR', ';'):
-                    lex_list = compound_statment(lex_list)
+                lex_list = comparison_expression(lex_list[1:])
+                if lex_list and len(lex_list) > 1 and lex_list[0] == ('PUNCTUATOR', ')'):
+                    lex_list = compound_statment(lex_list[1:])
                     if lex_list:
                         return lex_list
 
