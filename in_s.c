@@ -1,6 +1,6 @@
 int cal()
 {
-    print("cal\n");
+    printf("cal\n");
 }
 
 int main()
