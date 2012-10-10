@@ -39,3 +39,4 @@ MULTIPLY_SIGE = [
     ('OPERATOR', '/'),
 ]
 
+TEXT = 'text'

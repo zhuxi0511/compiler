@@ -1,5 +1,7 @@
 from consts import *
 from model.calculation_expression import *
+from model.tools import *
+import variables 
 
 def function_definition(lex_list):
     if not len(lex_list) > 1:
@@ -9,8 +11,12 @@ def function_definition(lex_list):
     deal_list = get_type(deal_list)
     if deal_list:
         deal_list = direct_declarator(deal_list)
+        file_add(TEXT, 'v' + str(variables.direct_declarator_ret_var[1]) + ':')
         if deal_list:
+            file_add(TEXT, 'pushl %ebp')
+            file_add(TEXT, 'movl %esp,%ebp')
             deal_list = compound_statment(deal_list)
+            file_add(TEXT, 'ret')
             return deal_list
 
     return None
@@ -20,6 +26,7 @@ def get_type(lex_list):
         print ERROR + 'get_type'
         return None
     if lex_list[0][0] == 'TYPE':
+        variables.get_type_ret_var = lex_list[0][1]
         print 'TYPE -> ' + str(lex_list[:1])
         return lex_list[1:]
 
@@ -31,6 +38,7 @@ def get_number(lex_list):
         print ERROR + 'get_number'
         return None
     if lex_list[0][0] == 'NUMBER':
+        variables.get_number_ret_var = lex_list[0][1]
         print 'NUMBER -> ' + str(lex_list[:1])
         return lex_list[1:]
 
@@ -45,11 +53,14 @@ def direct_declarator(lex_list):
     if lex_list:
         deal_list = post_declarator(lex_list)
         if deal_list:
+            variables.direct_declarator_ret_var = (variables.post_declarator_ret_var, variables.identifier_ret_var)
             return deal_list
         deal_list = suffix_declarator(lex_list)
         if deal_list:
+            variables.direct_declarator_ret_var = None
             return deal_list
 
+        variables.direct_declarator_ret_var = None
         return lex_list
 
     print ERROR + 'direct_declarator'
@@ -61,6 +72,7 @@ def identifier(lex_list):
         return None
     if lex_list[0][0] == 'WORD':
         print 'identifier -> ' + str(lex_list[:1])
+        variables.identifier_ret_var = lex_list[:1][0][1]
         return lex_list[1:]
 
     print ERROR + 'identifier'
@@ -84,14 +96,17 @@ def post_declarator(lex_list):
     if lex_list[0] == ('PUNCTUATOR', '['):
         if len(lex_list) > 3 and (lex_list[1][0] == 'NUMBER' or lex_list[1][0] == 'WORD') and \
                 lex_list[2] == ('PUNCTUATOR', ']'):
+            variables.post_declarator_ret_var = (1, lex_list[1])
             print 'post_declarator -> ' + str(lex_list[:3])
             return lex_list[3:]
     elif lex_list[0] == ('PUNCTUATOR', '('):
         if len(lex_list) > 2 and lex_list[1] == ('PUNCTUATOR', ')'):
             print 'post_declarator -> ' + str(lex_list[:2])
+            variables.post_declarator_ret_var = (2, '')
             return lex_list[2:]
         elif len(lex_list) > 3 and lex_list[1][0] == 'CONST' and \
                 lex_list[2] == ('PUNCTUATOR', ')'):
+            variables.post_declarator_ret_var = (2, lex_list[1]) 
             print 'post_declarator -> ' + str(lex_list[:3])
             return lex_list[3:]
 
@@ -128,6 +143,8 @@ def statement(lex_list):
     
     deal_list = expression_statement(lex_list)
     if deal_list:
+        file_add_lines(TEXT, variables.expression_statement_ret_var)
+        print variables.expression_statement_ret_var
         return deal_list
     deal_list = selection_statement(lex_list)
     if deal_list:
@@ -147,6 +164,7 @@ def expression_statement(lex_list):
     if lex_list:
         if len(lex_list) > 1 and lex_list[0] == ('PUNCTUATOR', ';'):
             print 'expression_statement -> ;'
+            variables.expression_statement_ret_var = variables.expression_ret_var
             return lex_list[1:]
 
     return None
@@ -156,24 +174,39 @@ def expression(lex_list):
         print ERROR + 'expression' + '1'
         return None
 
+    variables.expression_ret_var = list()
     deal_list = get_type(lex_list)
     if deal_list:
         deal_list = direct_declarator(deal_list)
         if deal_list:
+            num_t = 1
+            if variables.direct_declarator_ret_var:
+                if variables.direct_declarator_ret_var[0][0] == 1 and variables.direct_declarator_ret_var[0][1][0] == 'NUMBER':
+                    num_t = int(variables.direct_declarator_ret_var[0][1][1] + 0.5)
+            variables.var_sum_size += num_t * 4
+            variables.var_loc_table[variables.identifier_ret_var] = variables.var_sum_size
+            variables.expression_ret_var.append('subl $%s, %%esp' % (num_t * 4))
+
+
             if len(deal_list) > 1 and deal_list[0] == ('OPERATOR', '='):
+                identifier_tmp = variables.identifier_ret_var
                 temp_list = calculation_expression(deal_list[1:])
                 if temp_list:
+                    variables.expression_ret_var.append('movl %%eax, %s(%%ebp)' % -variables.var_loc_table[identifier_tmp])
                     return temp_list
                 temp_list = const_expression(deal_list[1:])
                 if temp_list:
                     return temp_list
             return deal_list
 
+    variables.expression_ret_var = list()
     deal_list = direct_declarator(lex_list)
     if deal_list:
         if len(deal_list) > 1 and deal_list[0] == ('OPERATOR', '='):
+            identifier_tmp = variables.identifier_ret_var
             temp_list = calculation_expression(deal_list[1:])
             if temp_list:
+                variables.expression_ret_var.append('movl %%eax, %s(%%ebp)' % -variables.var_loc_table[identifier_tmp])
                 return temp_list
         return deal_list
     
@@ -187,11 +220,15 @@ def const_expression(lex_list):
 
     if lex_list[0] == ('PUNCTUATOR', '{'):
         c = 1
+        count = 0
         state = STATUS_NEW
         while c < len(lex_list):
             if state == STATUS_NEW:
                 if lex_list[c][0] == 'NUMBER':
                     state = STATUS_POINT
+                    variables.expression_ret_var.append('movl $%s, %%edx' % count)
+                    variables.expression_ret_var.append('movl $%s, %s(%%ebp, %%edx, 4)' % ((int)(lex_list[c][1] + 0.5), -variables.var_loc_table[variables.identifier_ret_var]))
+                    count += 1
                 else:
                     break
             elif state == STATUS_POINT:
