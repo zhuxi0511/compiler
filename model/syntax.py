@@ -57,6 +57,7 @@ def direct_declarator(lex_list):
             return deal_list
         deal_list = suffix_declarator(lex_list)
         if deal_list:
+            variables.calculation_expression_ret_var.append('addl $1, %s(%%ebp)' % variables.var_loc_table[variables.identifier_ret_var])
             variables.direct_declarator_ret_var = None
             return deal_list
 
@@ -284,17 +285,23 @@ def for_statement(lex_list):
         print ERROR + 'for_statement' + '1'
         return None
 
-    variables.for_statement_ret_var = list()
     if lex_list[0] == ('KEYWORD', 'for') and lex_list[1] == ('PUNCTUATOR', '('):
+        variables.for_statement_ret_var = list()
         lex_list = expression(lex_list[2:])
         if lex_list and len(lex_list) > 1 and lex_list[0] == ('PUNCTUATOR', ';'):
             variables.for_statement_ret_var += variables.expression_ret_var
             lex_list = comparison_expression(lex_list[1:])
             if lex_list and len(lex_list) > 1 and lex_list[0] == ('PUNCTUATOR', ';'):
+                variables.for_statement_ret_var.append('for_start:')
+                variables.for_statement_ret_var += variables.comparison_expression_ret_var
                 lex_list = comparison_expression(lex_list[1:])
                 if lex_list and len(lex_list) > 1 and lex_list[0] == ('PUNCTUATOR', ')'):
+                    for_statement_tmp = [i for i in variables.comparison_expression_ret_var]
+                    file_add_lines(TEXT, variables.for_statement_ret_var)
                     lex_list = compound_statment(lex_list[1:])
                     if lex_list:
+                        file_add_lines(TEXT, for_statement_tmp)
+                        file_add(TEXT, 'for_fail:')
                         return lex_list
 
     print ERROR + 'for_statement' + '2'
