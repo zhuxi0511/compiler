@@ -6,6 +6,9 @@ def comparison_expression(lex_list):
         print ERROR + 'comparison_expression'
         return None
 
+    variables.comparison_expression_ret_var = list()
+    variables.comparison_expression_ret_var.append('movl $0, $cmpa')
+    variables.comparison_expression_ret_var.append('movl $0, $cmpb')
     lex_list = calculation_expression(lex_list)
     if lex_list:
         if len(lex_list) > 1 and lex_list[0] in COMPARE_SIGN:
@@ -23,6 +26,7 @@ def calculation_expression(lex_list):
         print ERROR + 'calculation_expression'
         return None
 
+    variables.calculation_expression_ret_var = list()
     lex_list = E(lex_list)
     if lex_list:
         return lex_list
@@ -50,8 +54,14 @@ def EE(lex_list):
         return None
 
     if lex_list[0] in PLUS_SING:
+        sign = lex_list[0]
+        variables.calculation_expression_ret_var.append('movl %eax, %ecx')
         lex_list = T(lex_list[1:])
         if lex_list:
+            if sign[1] == '+':
+                variables.calculation_expression_ret_var.append('addl %ecx, %eax')
+            elif sign[1] == '-':
+                variables.calculation_expression_ret_var.append('subl %ecx, %eax')
             lex_list = EE(lex_list)
             if lex_list:
                 return lex_list
@@ -78,8 +88,18 @@ def TT(lex_list):
         return None
 
     if lex_list[0] in MULTIPLY_SIGE:
+        sign = lex_list[0]
+        variables.calculation_expression_ret_var.append('movl %eax, %ebx')
         lex_list = F(lex_list[1:])
         if lex_list:
+            if sign[1] == '*':
+                variables.calculation_expression_ret_var.append('mull %ebx')
+            elif sign[1] == '/':
+                variables.calculation_expression_ret_var.append('movl %eax, %edx')
+                variables.calculation_expression_ret_var.append('movl %ebx, %eax')
+                variables.calculation_expression_ret_var.append('movl %edx, %ebx')
+                variables.calculation_expression_ret_var.append('movl $0, %edx')
+                variables.calculation_expression_ret_var.append('divl %ebx')
             lex_list = TT(lex_list)
             if lex_list:
                 return lex_list
@@ -98,19 +118,19 @@ def F(lex_list):
             if post[0] == 1:
                 if post[1][0] == 'NUMBER':
                     t_num = int(post[1][1] + 0.5)
-                    variables.expression_ret_var.append('movl $%s, %%edx' % t_num)
+                    variables.calculation_expression_ret_var.append('movl $%s, %%edx' % t_num)
                 elif post[1][0] == 'WORD':
-                    variables.expression_ret_var.append('movl %s(%%edp), %%edx' % variables.var_loc_table[post[1][1]])
-                variables.expression_ret_var.append('movl %s(%%edp, %%edx, 4), %%eax' % (-variables.var_loc_table[variables.identifier_ret_var]))
+                    variables.calculation_expression_ret_var.append('movl %s(%%edp), %%edx' % -variables.var_loc_table[post[1][1]])
+                variables.calculation_expression_ret_var.append('movl %s(%%edp, %%edx, 4), %%eax' % (-variables.var_loc_table[variables.identifier_ret_var]))
         else:
-            variables.expression_ret_var.append('movl %s(%%edp), %%eax' % (-variables.var_loc_table[variables.identifier_ret_var]))
+            variables.calculation_expression_ret_var.append('movl %s(%%edp), %%eax' % (-variables.var_loc_table[variables.identifier_ret_var]))
 
         return deal_list
 
     from model.syntax import get_number
     deal_list = get_number(lex_list)
     if deal_list:
-        variables.expression_ret_var.append('movl $%s, %%eax' % (int(variables.get_number_ret_var + 0.5)))
+        variables.calculation_expression_ret_var.append('movl $%s, %%eax' % (int(variables.get_number_ret_var + 0.5)))
         return deal_list
 
     print ERROR + 'F' + '2'

@@ -13,6 +13,8 @@ const_expression_ret_var = 0
 selection_statement_ret_var = 0
 iteration_statement_ret_var = 0
 for_statement_ret_var = 0
+comparison_expression_ret_var = 0
+calculation_expression_ret_var = 0
 
 E_ret_var = None
 EE_ret_var = None

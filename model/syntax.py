@@ -192,6 +192,7 @@ def expression(lex_list):
                 identifier_tmp = variables.identifier_ret_var
                 temp_list = calculation_expression(deal_list[1:])
                 if temp_list:
+                    variables.expression_ret_var += variables.calculation_expression_ret_var
                     variables.expression_ret_var.append('movl %%eax, %s(%%ebp)' % -variables.var_loc_table[identifier_tmp])
                     return temp_list
                 temp_list = const_expression(deal_list[1:])
@@ -206,6 +207,7 @@ def expression(lex_list):
             identifier_tmp = variables.identifier_ret_var
             temp_list = calculation_expression(deal_list[1:])
             if temp_list:
+                variables.expression_ret_var += variables.calculation_expression_ret_var
                 variables.expression_ret_var.append('movl %%eax, %s(%%ebp)' % -variables.var_loc_table[identifier_tmp])
                 return temp_list
         return deal_list
@@ -282,9 +284,11 @@ def for_statement(lex_list):
         print ERROR + 'for_statement' + '1'
         return None
 
+    variables.for_statement_ret_var = list()
     if lex_list[0] == ('KEYWORD', 'for') and lex_list[1] == ('PUNCTUATOR', '('):
         lex_list = expression(lex_list[2:])
         if lex_list and len(lex_list) > 1 and lex_list[0] == ('PUNCTUATOR', ';'):
+            variables.for_statement_ret_var += variables.expression_ret_var
             lex_list = comparison_expression(lex_list[1:])
             if lex_list and len(lex_list) > 1 and lex_list[0] == ('PUNCTUATOR', ';'):
                 lex_list = comparison_expression(lex_list[1:])

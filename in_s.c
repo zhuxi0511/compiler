@@ -8,8 +8,8 @@ int main()
     int score[6] = {76, 82, 90, 86, 79, 62};
     int credit[6] = {2, 2, 1, 2, 2, 3};
     int stu_number;
-    float mean;
-    float sum;
+    int mean;
+    int sum;
     int temp;
     int i;
 
