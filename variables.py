@@ -24,3 +24,4 @@ F_ret_var = None
 
 var_loc_table = dict()
 var_sum_size = 0
+printf_word = 0

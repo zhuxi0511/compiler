@@ -39,4 +39,5 @@ MULTIPLY_SIGE = [
     ('OPERATOR', '/'),
 ]
 
-TEXT = 'text'
+TEXT = 'text.s'
+DATA = 'text.s'

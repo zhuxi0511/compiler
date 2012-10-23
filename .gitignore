@@ -1,4 +1,4 @@
-
+other/
 *.pyc
 consts.pyc
 *.swp
@@ -12,3 +12,19 @@ in_s
 ttt
 
 text
+
+data
+
+model/__init__.pyc
+
+model/read_lexical.pyc
+
+result
+
+t
+
+text.s
+
+in.c
+
+in_s.c

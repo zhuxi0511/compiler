@@ -3,7 +3,7 @@ from model.calculation_expression import *
 from model.tools import *
 import variables 
 
-def function_definition(lex_list):
+def function_definition(lex_list, main_num):
     if not len(lex_list) > 1:
         print 'END'
         return None
@@ -11,12 +11,17 @@ def function_definition(lex_list):
     deal_list = get_type(deal_list)
     if deal_list:
         deal_list = direct_declarator(deal_list)
-        file_add(TEXT, 'v' + str(variables.direct_declarator_ret_var[1]) + ':')
+        dirc = variables.direct_declarator_ret_var[1]
+        if str(dirc) == str(main_num):
+            file_add(TEXT, 'main:')
+        else:
+            file_add(TEXT, 'v' + str(variables.direct_declarator_ret_var[1]) + ':')
         if deal_list:
             file_add(TEXT, 'pushl %ebp')
             file_add(TEXT, 'movl %esp,%ebp')
             deal_list = compound_statment(deal_list)
-            file_add(TEXT, 'ret')
+            if not str(dirc) == str(main_num):
+                file_add(TEXT, 'ret')
             return deal_list
 
     return None
@@ -57,7 +62,7 @@ def direct_declarator(lex_list):
             return deal_list
         deal_list = suffix_declarator(lex_list)
         if deal_list:
-            variables.calculation_expression_ret_var.append('addl $1, %s(%%ebp)' % variables.var_loc_table[variables.identifier_ret_var])
+            variables.calculation_expression_ret_var.append('addl $1, %s(%%ebp)' % -variables.var_loc_table[variables.identifier_ret_var])
             variables.direct_declarator_ret_var = None
             return deal_list
 
@@ -103,11 +108,16 @@ def post_declarator(lex_list):
     elif lex_list[0] == ('PUNCTUATOR', '('):
         if len(lex_list) > 2 and lex_list[1] == ('PUNCTUATOR', ')'):
             print 'post_declarator -> ' + str(lex_list[:2])
-            variables.post_declarator_ret_var = (2, '')
+            variables.post_declarator_ret_var = (2, None)
             return lex_list[2:]
-        elif len(lex_list) > 3 and lex_list[1][0] == 'CONST' and \
-                lex_list[2] == ('PUNCTUATOR', ')'):
-            variables.post_declarator_ret_var = (2, lex_list[1]) 
+        elif len(lex_list) > 3 and lex_list[1][0] == 'WORD' and \
+                lex_list[2] == ('PUNCTUATOR', ')') and \
+                variables.identifier_ret_var == variables.printf_word:
+            variables.expression_ret_var.append('pushl %s(%%ebp)' % -variables.var_loc_table[lex_list[1][1]])
+            variables.expression_ret_var.append('pushl $msg')
+            variables.expression_ret_var.append('call printf')
+            variables.expression_ret_var.append('addl $8, %esp')
+            variables.post_declarator_ret_var = (3, lex_list[1][1]) 
             print 'post_declarator -> ' + str(lex_list[:3])
             return lex_list[3:]
 
@@ -255,14 +265,21 @@ def selection_statement(lex_list):
         return None
 
     if lex_list[0] == ('KEYWORD', 'if') and lex_list[1] == ('PUNCTUATOR', '('):
-        lex_list = comparison_expression(lex_list[2:])
+        variables.selection_statement_ret_var = list()
+        lex_list = comparison_expression(lex_list[2:], 1)
         if len(lex_list) > 1 and lex_list[0] == ('PUNCTUATOR', ')'):
+            file_add_lines(TEXT, variables.comparison_expression_ret_var)
             lex_list = compound_statment(lex_list[1:])
             if lex_list:
+                file_add(TEXT, 'jmp selection_end')
                 if len(lex_list) > 1 and lex_list[0] == ('KEYWORD', 'else'):
+                    file_add(TEXT, 'if_fail:')
                     deal_list = compound_statment(lex_list[1:])
                     if deal_list:
+                        file_add(TEXT, 'selection_end:')
                         return deal_list
+                file_add(TEXT, 'if_fail:')
+                file_add(TEXT, 'selection_end:')
                 return lex_list
 
     print ERROR + 'selection_statement' + '2'
@@ -301,6 +318,7 @@ def for_statement(lex_list):
                     lex_list = compound_statment(lex_list[1:])
                     if lex_list:
                         file_add_lines(TEXT, for_statement_tmp)
+                        file_add(TEXT, 'jmp for_start')
                         file_add(TEXT, 'for_fail:')
                         return lex_list
 

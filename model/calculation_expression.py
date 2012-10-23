@@ -1,7 +1,7 @@
 from consts import *
 import variables
 
-def comparison_expression(lex_list):
+def comparison_expression(lex_list, sign = 0):
     if not len(lex_list) > 1:
         print ERROR + 'comparison_expression'
         return None
@@ -12,22 +12,25 @@ def comparison_expression(lex_list):
     lex_list = calculation_expression(lex_list)
     if lex_list:
         variables.comparison_expression_ret_var += variables.calculation_expression_ret_var
-        variables.comparison_expression_ret_var.append('movl %eax, $cmpa')
+        variables.comparison_expression_ret_var.append('movl %eax, cmpa')
         if len(lex_list) > 1 and lex_list[0] in COMPARE_SIGN:
             compare_sign = lex_list[0][1]
             deal_list = calculation_expression(lex_list[1:])
             if deal_list:
                 variables.comparison_expression_ret_var += variables.calculation_expression_ret_var
-                variables.comparison_expression_ret_var.append('movl %eax, $cmpb')
-                variables.comparison_expression_ret_var.append('cmp cmpa, cmpb')
+                variables.comparison_expression_ret_var.append('movl %eax, cmpb')
+                variables.comparison_expression_ret_var.append('movl cmpa, %eax')
+                variables.comparison_expression_ret_var.append('movl cmpb, %ebx')
+                variables.comparison_expression_ret_var.append('cmp %eax, %ebx')
+                to = 'for_fail' if sign == 0 else 'if_fail'
                 if compare_sign == '>':
-                    variables.comparison_expression_ret_var.append('jbe for_fail')
+                    variables.comparison_expression_ret_var.append('jae %s' % to)
                 elif compare_sign == '<':
-                    variables.comparison_expression_ret_var.append('jae for_fail')
+                    variables.comparison_expression_ret_var.append('jbe %s' % to)
                 elif compare_sign == '<=':
-                    variables.comparison_expression_ret_var.append('ja for_fail')
+                    variables.comparison_expression_ret_var.append('jb %s' % to)
                 elif compare_sign == '>=':
-                    variables.comparison_expression_ret_var.append('jb for_fail')
+                    variables.comparison_expression_ret_var.append('ja %s' % to)
                 return deal_list
         else:
             return lex_list
@@ -75,7 +78,8 @@ def EE(lex_list):
             if sign[1] == '+':
                 variables.calculation_expression_ret_var.append('addl %ecx, %eax')
             elif sign[1] == '-':
-                variables.calculation_expression_ret_var.append('subl %ecx, %eax')
+                variables.calculation_expression_ret_var.append('subl %eax, %ecx')
+                variables.calculation_expression_ret_var.append('movl %ecx, %eax')
             lex_list = EE(lex_list)
             if lex_list:
                 return lex_list
