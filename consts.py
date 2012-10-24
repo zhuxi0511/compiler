@@ -29,12 +29,12 @@ COMPARE_SIGN = [
     ('OPERATOR', '>='),
 ]
 
-PLUS_SING = [
+PLUS_SIGN = [
     ('OPERATOR', '+'),
     ('OPERATOR', '-'),
 ]
 
-MULTIPLY_SIGE = [
+MULTIPLY_SIGN = [
     ('OPERATOR', '*'),
     ('OPERATOR', '/'),
 ]

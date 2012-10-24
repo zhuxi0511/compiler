@@ -70,7 +70,7 @@ def EE(lex_list):
         print ERROR + 'EE'
         return None
 
-    if lex_list[0] in PLUS_SING:
+    if lex_list[0] in PLUS_SIGN:
         sign = lex_list[0]
         variables.calculation_expression_ret_var.append('movl %eax, %ecx')
         lex_list = T(lex_list[1:])
@@ -105,7 +105,7 @@ def TT(lex_list):
         print ERROR + 'TT'
         return None
 
-    if lex_list[0] in MULTIPLY_SIGE:
+    if lex_list[0] in MULTIPLY_SIGN:
         sign = lex_list[0]
         variables.calculation_expression_ret_var.append('movl %eax, %ebx')
         lex_list = F(lex_list[1:])
