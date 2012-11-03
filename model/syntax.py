@@ -22,7 +22,7 @@ def function_definition(lex_list, main_num):
             deal_list = compound_statment(deal_list)
             if not str(dirc) == str(main_num):
                 file_add(TEXT, 'movl %ebp,%esp')
-                file_add(TEXT, 'pushl %ebp')
+                file_add(TEXT, 'popl %ebp')
                 file_add(TEXT, 'ret')
             return deal_list
 
