@@ -21,6 +21,8 @@ def function_definition(lex_list, main_num):
             file_add(TEXT, 'movl %esp,%ebp')
             deal_list = compound_statment(deal_list)
             if not str(dirc) == str(main_num):
+                file_add(TEXT, 'movl %ebp,%esp')
+                file_add(TEXT, 'pushl %ebp')
                 file_add(TEXT, 'ret')
             return deal_list
 
@@ -214,6 +216,9 @@ def expression(lex_list):
     variables.expression_ret_var = list()
     deal_list = direct_declarator(lex_list)
     if deal_list:
+        if variables.direct_declarator_ret_var:
+            if variables.direct_declarator_ret_var[0][0] == 2:
+                file_add(TEXT, 'call v' + str(variables.identifier_ret_var))
         if len(deal_list) > 1 and deal_list[0] == ('OPERATOR', '='):
             identifier_tmp = variables.identifier_ret_var
             temp_list = calculation_expression(deal_list[1:])
