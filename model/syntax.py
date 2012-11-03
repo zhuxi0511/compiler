@@ -19,6 +19,8 @@ def function_definition(lex_list, main_num):
         if deal_list:
             file_add(TEXT, 'pushl %ebp')
             file_add(TEXT, 'movl %esp,%ebp')
+            if str(dirc) == str(main_num):
+                file_add(TEXT, 'subl $%s, %%esp' % variables.var_sum_size)
             deal_list = compound_statment(deal_list)
             if not str(dirc) == str(main_num):
                 file_add(TEXT, 'movl %ebp,%esp')
