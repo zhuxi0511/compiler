@@ -30,3 +30,9 @@ in.c
 in_s.c
 
 slide/
+
+lexical_support.py
+
+suffix_support.py
+
+yuanfang.py
