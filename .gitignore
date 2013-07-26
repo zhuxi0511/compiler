@@ -14,9 +14,9 @@ ttt
 text
 
 data
-model
+
 model/__init__.pyc
-report
+
 model/read_lexical.pyc
 
 result
